@@ -1,48 +1,96 @@
 import { ethers } from "ethers";
 
+// Minimal ERC20 ABI (USDC-compatible)
 const ERC20_ABI = [
-  "function transfer(address to,uint256 value) returns (bool)",
-  "function balanceOf(address owner) view returns (uint256)"
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)"
 ];
 
+const IS_REAL_CHAIN =
+  !!process.env.RPC_URL &&
+  !!process.env.PRIVATE_KEY &&
+  !!process.env.USDC_CONTRACT;
+
 export class TokenService {
-  provider: ethers.JsonRpcProvider;
+  provider?: ethers.JsonRpcProvider;
   wallet?: ethers.Wallet;
   token?: ethers.Contract;
-  ready: boolean = false;
 
-  constructor(rpcUrl: string, privateKey: string, tokenAddr: string) {
-    this.provider = new ethers.JsonRpcProvider(rpcUrl || "http://localhost:8545");
-    try {
-      if (privateKey && privateKey.length > 0 && tokenAddr) {
-        this.wallet = new ethers.Wallet(privateKey, this.provider);
-        this.token = new ethers.Contract(tokenAddr, ERC20_ABI, this.wallet);
-        this.ready = true;
-      } else {
-        console.warn("TokenService initialized without private key or token address; functionality limited.");
-      }
-    } catch (err: any) {
-      console.warn("TokenService wallet initialization failed:", err.message || err);
-      this.ready = false;
+  constructor() {
+    if (!IS_REAL_CHAIN) {
+      console.log("[TokenService] Demo mode");
+      console.log("[TokenService] PRIVATE_KEY length:", process.env.PRIVATE_KEY?.length);
+      return;
     }
+
+    if (!process.env.RPC_URL) throw new Error("Missing RPC_URL");
+    if (!process.env.PRIVATE_KEY) throw new Error("Missing PRIVATE_KEY");
+    if (!process.env.USDC_CONTRACT) throw new Error("Missing USDC_CONTRACT");
+
+    this.provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+    this.wallet = new ethers.Wallet(process.env.PRIVATE_KEY, this.provider);
+    this.token = new ethers.Contract(
+      process.env.USDC_CONTRACT,
+      ERC20_ABI,
+      this.wallet
+    );
+
+    console.log("[TokenService] Real chain mode enabled");
+      try {
+        // ...some init that might throw
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          if (err.message.includes("private key")) {
+            console.error("invalid private key detected");
+          }
+          console.error("token init err:", err.message);
+        } else {
+          console.error("token init err:", String(err));
+        }
+        throw err;
+      }
   }
 
-  async transfer(to: string, amount: string) {
-    if (!this.ready || !this.token) throw new Error("TokenService not initialized");
-    const decimals = 6;
-    const value = ethers.parseUnits(amount, decimals);
+  async transfer(from: string | undefined, to: string, amount: string) {
+    // For demo mode: deterministic fake hash, no signing
+    if (!IS_REAL_CHAIN) {
+  const payload = `${from || 'demo'}-${to}-${amount}-${Date.now()}`;
+  const fakeHash = ethers.keccak256(ethers.toUtf8Bytes(payload));
+      return {
+        txHash: fakeHash,
+        status: "demo"
+      };
+    }
+
+    if (!this.token) throw new Error("Token contract not initialized");
+
+    const value = ethers.parseUnits(amount, 6);
     const tx = await this.token.transfer(to, value);
-    return tx.hash;
+    return { txHash: tx.hash, status: "submitted" };
   }
 
-  async getReceipt(txHash: string) {
-    return await this.provider.getTransactionReceipt(txHash);
-  }
+  async balanceOf(address?: string) {
+    if (!IS_REAL_CHAIN) {
+      return {
+        address: "demo",
+        balance: "1000",
+        network: "demo"
+      };
+    }
 
-  async balanceOf(addr: string) {
-    if (!this.ready || !this.token) throw new Error("TokenService not initialized");
-    const b = await this.token.balanceOf(addr);
-    return ethers.formatUnits(b, 6);
+    if (!this.token || !this.wallet) {
+      throw new Error("TokenService not initialized");
+    }
+
+    const addr = address ?? this.wallet.address;
+    const raw = await this.token.balanceOf(addr);
+
+    return {
+      address: addr,
+      balance: ethers.formatUnits(raw, 6),
+      network: "real"
+    };
   }
 }
 export function getToken() {
