@@ -12,11 +12,11 @@ const txs = [
 router.get("/", (_, res) => res.json(loadTransactions()));
 
 // POST /api/payments  → demo or real transfer
-import { TokenService } from "../services/token";
+import { TokenService } from "../services/token.js";
 import { isAddress } from "ethers";
-import { computeAuditHash } from "../services/anchor";
-import { saveTransaction, loadTransactions } from "../services/store";
-import { Transaction } from "../types/transaction";
+import { computeAuditHash } from "../services/anchor.js";
+import { saveTransaction, loadTransactions } from "../services/store.js";
+import { Transaction } from "../types/transaction.js";
 
 const tokenService = new TokenService();
 

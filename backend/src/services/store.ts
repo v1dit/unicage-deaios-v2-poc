@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { Transaction } from "../types/transaction";
+import { Transaction } from "../types/transaction.js";
 
 const FILE = path.join(__dirname, "../../data/transactions.json");
 

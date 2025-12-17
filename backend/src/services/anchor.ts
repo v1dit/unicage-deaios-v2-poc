@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { Transaction } from "../types/transaction";
+import { Transaction } from "../types/transaction.js";
 
 export function computeAuditHash(tx: Omit<Transaction, "auditHash">) {
   const payload = JSON.stringify(tx);

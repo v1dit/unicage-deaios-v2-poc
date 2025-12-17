@@ -1,6 +1,6 @@
 import express from "express";
 import crypto from "crypto";
-import { loadTransactions } from "../services/store";
+import { loadTransactions } from "../services/store.js";
 
 export const router = express.Router();
 
@@ -9,7 +9,7 @@ router.get("/", async (_, res) => {
     const txs = loadTransactions();
 
     const header = "ID,From,To,Amount,TxHash,Status,Timestamp,AuditHash\n";
-    const rows = txs.map((t) => `${t.id},${t.from},${t.to},${t.amount},${t.txHash},${t.status},${t.timestamp},${t.auditHash}`);
+  const rows = txs.map((t: any) => `${t.id},${t.from},${t.to},${t.amount},${t.txHash},${t.status},${t.timestamp},${t.auditHash}`);
     const csv = header + rows.join("\n");
 
     const buf = Buffer.from(csv, "utf-8");
