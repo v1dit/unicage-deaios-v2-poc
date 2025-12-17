@@ -18,6 +18,40 @@ app.get("/health", (_req, res) => {
 
 // ----- demo endpoints -----
 
+// Top-level demo transactions for frontend (avoid /api prefix for demo)
+app.get("/transactions", (_req, res) => {
+	res.json([
+		{
+			id: "tx_001",
+			merchant: "Acme Corp",
+			amount: 12450,
+			currency: "USDC",
+			status: "confirmed",
+			timestamp: new Date().toISOString(),
+		},
+		{
+			id: "tx_002",
+			merchant: "Global Traders Ltd",
+			amount: 8300,
+			currency: "USDC",
+			status: "confirmed",
+			timestamp: new Date().toISOString(),
+		},
+	])
+})
+
+// Demo compliance insights
+app.get("/insights", (_req, res) => {
+	res.json({
+		riskScore: 0.02,
+		flags: [
+			"Unusual transaction pattern detected in last 24 hours",
+		],
+		complianceStatus: "passed",
+	})
+})
+
+
 // Create payment intent (NON-CUSTODIAL)
 app.post("/api/payments", (req, res) => {
 	const { amount, from, to, chain } = req.body
