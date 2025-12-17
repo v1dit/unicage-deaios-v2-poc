@@ -1,24 +1,22 @@
 {
-  "name": "unicage-deaios-v2-poc-backend",
+  "name": "unicage-pay-backend",
   "version": "1.0.0",
-  "main": "src/server.ts",
-  "type": "commonjs",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "smoke": "ts-node scripts/smoke.ts"
+    "dev": "ts-node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
   },
   "dependencies": {
+    "express": "^4.19.2",
     "cors": "^2.8.5",
-    "csv-writer": "^1.6.0",
-    "ethers": "^6.9.0",
-    "express": "^4.19.2"
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/node": "^24.10.0",
+    "@types/node": "^20.11.30",
     "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.4.5"
   }
 }
